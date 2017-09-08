@@ -1,45 +1,36 @@
 #include <iostream>
-#include <fstream>
-#include <regex>
+
+#include "GraphIO.h"
 #include "DependencyGraph.h"
 
 using namespace std;
 
-DependencyGraph parseFile(string filename)
-{
-    ifstream inFile(filename);
-    string line;
-    regex lineRegex("([_[:alnum:]]+)[[:space:]]*:(.*)");
-    regex tokenRegex("[_[:alnum:]]+");
-    smatch lineMatch;
-    DependencyGraph container;
-
-    while (getline(inFile, line)) {
-        string nodeName;
-        if (regex_match(line, lineMatch, lineRegex)) {
-            if (lineMatch.size() > 1) {
-                nodeName = lineMatch[1].str();
-            } else {
-                // TODO: parse error
-            }
-            if (lineMatch.size() > 2) {
-                string s = lineMatch[2].str();
-                auto itBegin = sregex_iterator(s.begin(), s.end(), tokenRegex);
-                auto itEnd = sregex_iterator();
-                for (auto it = itBegin; it != itEnd; ++it) {
-                    container.addEdge(it->str(), nodeName);
-                }
-            } else {
-                // TODO: parse error?
-            }
-        }
-    }
-    return container;
-}
-
 int main(int argc, char * argv[])
 {
-    DependencyGraph nc = parseFile("example/test.txt");
-    nc.run();
+    if (argc < 2) {
+        cerr << "usage: " << argv[0] << " <graph text file>" << endl;
+        return -1;
+    }
+    string filename(argv[1]);
+    DependencyGraph graph = GraphIO::fromTextFile(filename);
+    
+    graph.gatherGraphInfo();
+
+    if (!graph.isValid()) {
+        cerr << "this is not a directed acyclic graph" << endl;
+        return -2;
+    }
+    
+    auto indNodes = graph.getIndependentGroups();
+    for (int level = 0; level < indNodes.size(); ++level) {
+        cout << "level " << level << " :";
+        for (int i = 0; i < indNodes[level].size(); ++i) {
+            cout << " " << indNodes[level][i]->getName();
+        }
+        cout << endl;
+    }
+
+    GraphIO::toSVG(graph, "output.svg");
+
     return 0;
 }

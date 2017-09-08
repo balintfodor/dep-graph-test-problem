@@ -21,21 +21,18 @@ void DependencyGraph::addEdge(string nameFrom, string nameTo)
     // TODO: invalidate readyNodes, numReady etc...
 }
 
-// void DependencyGraph::print()
-// {
-//     for (const auto &node : nodes) {
-//         cout << node.second->getName() << " ->";
-//         for (const auto &out : node.second->getOutputs()) {
-//            cout << " " << out->getName();
-//         }
-//         cout << endl;
-//     }
-// }
+void DependencyGraph::gatherGraphInfo()
+{
+    reset();
+    traverse();
+}
 
-void DependencyGraph::initialize()
+void DependencyGraph::reset()
 {
     numReady = 0;
     readyNodes.clear();
+    independentGroups.clear();
+    valid = true;
     for (auto &node : nodes) {
         node.second->reset();
         if (node.second->isReady()) {
@@ -43,11 +40,6 @@ void DependencyGraph::initialize()
             readyNodes.push_back(node.second);
         }
     }
-}
-
-bool DependencyGraph::isReady() const
-{
-    return numReady == nodes.size();
 }
 
 void DependencyGraph::step()
@@ -65,43 +57,42 @@ void DependencyGraph::step()
     readyNodes = nextNodesList;
 }
 
-void DependencyGraph::run()
+const vector<vector<Node::ptr_t>>& DependencyGraph::getIndependentGroups() const
 {
-    for (int i = 0; i < nodes.size(); ++i) {
-        step();
-        if (isReady()) {
-            return;
-        }
-    }
+    return independentGroups;
 }
 
-list<list<Node::ptr_t>> DependencyGraph::getParallelNodes()
+const std::map<std::string, Node::ptr_t>& DependencyGraph::getNodes() const
 {
-    initialize();
-    list<list<Node::ptr_t>> parallel;
-    for (int i = 0; i < nodes.size(); ++i) {
-        parallel.emplace_back();
-        parallel.back().insert(parallel.back().begin(), readyNodes.begin(), readyNodes.end());
-        step();
-        if (isReady()) {
-            return parallel;
-        }
-    }
-    return parallel;
+    return nodes;
 }
 
-// void DependencyGraph::draw()
-// {
-//     auto p = getParallelNodes();
-//     int n = max_element(p.begin(), p.end(), [](const decltype(p)::value_type &a, const decltype(p)::value_type &b)
-//         {
-//             return a.size() < b.size();
-//         })->size();
-//     cout << R"svg(<svg xmlns="http://www.w3.org/2000/svg" height="64" width="64">)svg" << endl;
-//     for (int level = 0; level < p.size(); ++level) {
-//         for (int i = 0; i < p[level].size(); ++i) {
+bool DependencyGraph::isValid() const
+{
+    return valid;
+}
 
-//         }
-//     }
-//     cout << R"svg(</svg>)svg" << endl;
-// }
+int DependencyGraph::getMaxGroupSize() const
+{
+    return maxGroupSize;
+}
+
+void DependencyGraph::traverse()
+{
+    reset();
+    auto &ind = independentGroups;
+    valid = false;
+    for (int i = 0; i < nodes.size(); ++i) {
+        ind.emplace_back();
+        ind.back().insert(ind.back().begin(), readyNodes.begin(), readyNodes.end());
+        
+        maxGroupSize = max((int)readyNodes.size(), maxGroupSize);
+        
+        if (numReady == nodes.size()) {
+            valid = true;
+            break;
+        }
+
+        step();
+    }
+}
