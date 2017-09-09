@@ -81,11 +81,9 @@ bool DependencyGraph::traverse(VisitorFunction func)
 
 bool DependencyGraph::traverse(Visitor &visitor)
 {
-    // TODO: find a neater solution using mem_fn and bind
-    return traverse([&visitor](const Node::ptr_t& a, int b, int c)
-        { 
-            visitor.accept(a, b, c);
-        });
+    using namespace std::placeholders;
+    auto func = bind(&Visitor::accept, &visitor, _1, _2, _3);
+    return traverse(func);
 }
 
 bool DependencyGraph::traverse(VisitorFunction func) const
