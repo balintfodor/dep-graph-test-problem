@@ -6,10 +6,10 @@
 
 using namespace std;
 
-std::string GraphSVG::bodyTag = R"svg(<svg xmlns="http://www.w3.org/2000/svg" height="{w}" width="{h}">{content}</svg>)svg";
-std::string GraphSVG::circleTag = R"svg(<circle cx="{x}" cy="{y}" r="16" stroke="black" stroke-width="1" fill="#2ecc71"/>)svg";
-std::string GraphSVG::lineTag = R"svg(<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="#34495e" stroke-width="2"/>)svg";
-std::string GraphSVG::textTag = R"svg(<text x="{x}" y="{y}" fill="black">{text}</text>)svg";
+string GraphSVG::bodyTag = R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="{min-x} {min-y} {w} {h}">{content}</svg>)svg";
+string GraphSVG::circleTag = R"svg(<circle cx="{x}" cy="{y}" r="{r}" fill="{color}" opacity="0.9"/>)svg";
+string GraphSVG::lineTag = R"svg(<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="black" stroke-width="1"/>)svg";
+string GraphSVG::textTag = R"svg(<text x="{x}" y="{y}" fill="black" text-anchor="middle" alignment-baseline="central" font-family="Helvetica">{text}</text>)svg";
 
 string GraphSVG::subs(string templ, map<string, string> feedDict)
 {
@@ -20,22 +20,24 @@ string GraphSVG::subs(string templ, map<string, string> feedDict)
     return result;
 }
 
-void GraphSVG::addNode(string name, int x, int y)
+void GraphSVG::addNode(string name, int x, int y, int r, string color)
 {
     coordMap[name] = {x, y};
 
-    width = max(x, width);
-    height = max(y, height);
+    minX = min(x - r, minX);
+    minY = min(y - r, minY);
+    maxX = max(x + r, maxX);
+    maxY = max(y + r, maxY);
 
-    body << subs(circleTag, {
-        {"x", to_string(x)}, 
-        {"y", to_string(y)}});
-    body << endl;
-    body << subs(textTag, {
+    nodes << subs(circleTag, {
+        {"x", to_string(x)},
+        {"y", to_string(y)},
+        {"r", to_string(r)},
+        {"color", color}});
+    nodes << subs(textTag, {
         {"x", to_string(x)}, 
         {"y", to_string(y)}, 
         {"text", name}});
-    body << endl;
 }
 
 void GraphSVG::addEdge(string from, string to)
@@ -53,20 +55,25 @@ void GraphSVG::addEdge(string from, string to)
     }
     p2 = it->second;
 
-    body << subs(lineTag, {
+    edges << subs(lineTag, {
         {"x1", to_string(p1.x)},
         {"y1", to_string(p1.y)},
         {"x2", to_string(p2.x)},
         {"y2", to_string(p2.y)}});
-    body << endl;
 }
 
-string GraphSVG::getContent() const
+string GraphSVG::getContent(int border) const
 {
     stringstream ss;
+    int w = maxX - minX;
+    int h = maxY - minY;
     ss << subs(bodyTag, {
-        {"w", to_string(width*2)},
-        {"h", to_string(height*2)},
-        {"content", body.str()}});
+        {"w", to_string(w + 2 * border)},
+        {"h", to_string(h + 2 * border)},
+        {"min-x", to_string(minX - border)},
+        {"max-x", to_string(maxX + border)},
+        {"min-y", to_string(minY - border)},
+        {"max-y", to_string(maxY + border)},
+        {"content", edges.str() + nodes.str()}});
     return ss.str();
 }

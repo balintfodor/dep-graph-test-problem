@@ -62,10 +62,28 @@ void GraphIO::toDotFile(const DependencyGraph& graph, string filename)
 void GraphIO::toSVG(const DependencyGraph& graph, string filename)
 {
     GraphSVG svg;
-
-    graph.traverse([&svg](const Node::ptr_t &node, int level, int which)
+    vector<int> groupSizes;
+    static const vector<string> colorLut = {"#2E95A3", "#50B8B4", "#C6FFFA", "#E2FFA8", "#D6E055"};
+    
+    graph.traverse([&groupSizes](const Node::ptr_t &node, int level, int which)
     {
-        svg.addNode(node->getName(), which * 160 + 100, level * 160 + 100);
+        groupSizes.resize(max(groupSizes.size(), (size_t)level + 1));
+        groupSizes[level]++;
+    });
+
+    int maxN = *max_element(groupSizes.begin(), groupSizes.end());
+
+    graph.traverse([&svg, &groupSizes, maxN](const Node::ptr_t &node, int level, int which)
+    {
+        int n = groupSizes[level];
+        //(which - n / 2.0) * 50. + maxN / 2.0 * 50;
+        //50.0 * which - (n + maxN) / 25.0;
+        double d = 100.;
+        double x = d * (which - 0.5 * (n - maxN));
+        double y = level * d;
+        int r = 45;
+        string color = colorLut[level % colorLut.size()];
+        svg.addNode(node->getName(), (int)x, (int)y, r, color);
     });
 
     for (const auto &node : graph) {
