@@ -18,21 +18,12 @@ void DependencyGraph::addEdge(string nameFrom, string nameTo)
     shared_ptr<Node> v = getNode(nameTo);
     u->addOutput(v);
     v->addInput();
-    // TODO: invalidate readyNodes, numReady etc...
-}
-
-void DependencyGraph::gatherGraphInfo()
-{
-    reset();
-    traverse();
 }
 
 void DependencyGraph::reset()
 {
     numReady = 0;
     readyNodes.clear();
-    independentGroups.clear();
-    valid = true;
     for (auto &node : nodes) {
         node.second->reset();
         if (node.second->isReady()) {
@@ -54,45 +45,20 @@ void DependencyGraph::step()
             }
         }
     }
-    readyNodes = nextNodesList;
+    swap(readyNodes, nextNodesList);
 }
 
-const vector<vector<Node::ptr_t>>& DependencyGraph::getIndependentGroups() const
-{
-    return independentGroups;
-}
-
-const std::map<std::string, Node::ptr_t>& DependencyGraph::getNodes() const
-{
-    return nodes;
-}
-
-bool DependencyGraph::isValid() const
-{
-    return valid;
-}
-
-int DependencyGraph::getMaxGroupSize() const
-{
-    return maxGroupSize;
-}
-
-void DependencyGraph::traverse()
+void DependencyGraph::traverse(Visitor &visitor)
 {
     reset();
-    auto &ind = independentGroups;
-    valid = false;
     for (int i = 0; i < nodes.size(); ++i) {
-        ind.emplace_back();
-        ind.back().insert(ind.back().begin(), readyNodes.begin(), readyNodes.end());
-        
-        maxGroupSize = max((int)readyNodes.size(), maxGroupSize);
-        
+        int cnt = 0;
+        for (const Node::ptr_t &node : readyNodes) {
+            visitor.accept(node, i, cnt++);
+        }
         if (numReady == nodes.size()) {
-            valid = true;
             break;
         }
-
         step();
     }
 }

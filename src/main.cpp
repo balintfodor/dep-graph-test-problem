@@ -2,6 +2,7 @@
 
 #include "GraphIO.h"
 #include "DependencyGraph.h"
+#include "IndGroupsVisitor.h"
 
 using namespace std;
 
@@ -14,14 +15,16 @@ int main(int argc, char * argv[])
     string filename(argv[1]);
     DependencyGraph graph = GraphIO::fromTextFile(filename);
     
-    graph.gatherGraphInfo();
+    IndGroupsVisitor visitor;
 
-    if (!graph.isValid()) {
-        cerr << "this is not a directed acyclic graph" << endl;
-        return -2;
-    }
+    graph.traverse(visitor);
+
+    // if (!graph.isValid()) {
+        // cerr << "this is not a directed acyclic graph" << endl;
+        // return -2;
+    // }
     
-    auto indNodes = graph.getIndependentGroups();
+    auto indNodes = visitor.getIndGroups();
     for (int level = 0; level < indNodes.size(); ++level) {
         cout << "level " << level << " :";
         for (int i = 0; i < indNodes[level].size(); ++i) {
@@ -30,7 +33,7 @@ int main(int argc, char * argv[])
         cout << endl;
     }
 
-    GraphIO::toSVG(graph, "output.svg");
+    //GraphIO::toSVG(graph, "output.svg");
 
     return 0;
 }

@@ -71,47 +71,47 @@ DependencyGraph GraphIO::fromTextFile(string filename)
     return graph;
 }
 
-map<string, pair<int, int>> buildInverseNodeMap(const vector<vector<Node::ptr_t>> &groups)
-{
-    map<std::string, std::pair<int, int>> result;
-    for (int level = 0; level < groups.size(); ++level) {
+// map<string, pair<int, int>> buildInverseNodeMap(const vector<vector<Node::ptr_t>> &groups)
+// {
+//     map<std::string, std::pair<int, int>> result;
+//     for (int level = 0; level < groups.size(); ++level) {
         
-        for (int i = 0; i < groups[level].size(); ++i) {
-            result[groups[level][i]->getName()] = make_pair(level, i);
-        }
-    }
-    return result;
-}
+//         for (int i = 0; i < groups[level].size(); ++i) {
+//             result[groups[level][i]->getName()] = make_pair(level, i);
+//         }
+//     }
+//     return result;
+// }
 
 void GraphIO::toSVG(const DependencyGraph& graph, std::string filename, int width, int height)
 {
-    int n = graph.getMaxGroupSize();
-    const auto &ind = graph.getIndependentGroups();
-    int maxLevels = ind.size();
+    // int n = graph.getMaxGroupSize();
+    // const auto &ind = graph.getIndependentGroups();
+    // int maxLevels = ind.size();
 
-    auto nodeToPos = buildInverseNodeMap(ind);
+    // auto nodeToPos = buildInverseNodeMap(ind);
 
-    stringstream svg;
-    svg << "<svg "
-        << "xmlns=\"http://www.w3.org/2000/svg\" "
-        << "height=\"" << height << "\" "
-        << "width=\"" << width << "\" "
-        << ">" << endl;
-    for (const auto &node : graph.getNodes()) {
-        auto pos = nodeToPos[node.second->getName()];
-        int y = height / (maxLevels + 2.0) * (pos.first + 1.0);
-        int x = width / (n + 2.0) * (pos.second + 1.0);
-        svg << "<circle "
-            << "cx=\"" << x << "\" "
-            << "cy=\"" << y << "\" "
-            << "r=\"20\" stroke=\"black\" stroke-width=\"1\" fill=\"white\" />" << endl;
-        svg << "<text "
-            << "x=\"" << x << "\" "
-            << "y=\"" << y << "\" "
-            << "fill=\"black\">" << node.second->getName() << "</text>" << endl;
-    }
-    svg << "</svg>" << endl;
+    // stringstream svg;
+    // svg << "<svg "
+    //     << "xmlns=\"http://www.w3.org/2000/svg\" "
+    //     << "height=\"" << height << "\" "
+    //     << "width=\"" << width << "\" "
+    //     << ">" << endl;
+    // for (const auto &node : graph.getNodes()) {
+    //     auto pos = nodeToPos[node.second->getName()];
+    //     int y = height / (maxLevels + 2.0) * (pos.first + 1.0);
+    //     int x = width / (n + 2.0) * (pos.second + 1.0);
+    //     svg << "<circle "
+    //         << "cx=\"" << x << "\" "
+    //         << "cy=\"" << y << "\" "
+    //         << "r=\"20\" stroke=\"black\" stroke-width=\"1\" fill=\"white\" />" << endl;
+    //     svg << "<text "
+    //         << "x=\"" << x << "\" "
+    //         << "y=\"" << y << "\" "
+    //         << "fill=\"black\">" << node.second->getName() << "</text>" << endl;
+    // }
+    // svg << "</svg>" << endl;
 
-    ofstream outFile(filename);
-    outFile << svg.str();
+    // ofstream outFile(filename);
+    // outFile << svg.str();
 }
