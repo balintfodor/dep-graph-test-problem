@@ -1,12 +1,12 @@
-#dep-graph
+# dep-graph
 
-This a test problem solution backing a job interview.
+This is a test problem solution backing a job interview.
 
-This program reads a dependency tree from a structured text file, finds independent groups of nodes and prints them out. It also draws the graph to in an svg file and generates a graphviz input file for dot.
+The program reads a dependency tree from a structured text file, finds independent groups of nodes and prints them out. It also draws the graph to in an svg file and generates a graphviz input file for `dot`.
 
-Most of the example files are borrowed and processed into another format from the [graphviz gallery](http://www.graphviz.org/Gallery.php).
+Most of the example files are borrowed (and processed into another format) from the [graphviz gallery](http://www.graphviz.org/Gallery.php).
 
-#build and run
+# build and run
 
 `mkdir build; cd build; cmake ..; make; cd ..`
 
