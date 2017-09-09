@@ -3,8 +3,40 @@
 #include <fstream>
 #include <regex>
 #include <sstream>
+#include <regex>
 
 using namespace std;
+
+std::string GraphSVG::bodyTag = R"svg(<svg height="{w}" width="{h}">{content}</svg>)svg";
+std::string GraphSVG::circleTag = R"svg(<circle cx="{x}" cy="{y}" r="{r}" stroke="black" stroke-width="1"/>)svg";
+std::string GraphSVG::lineTag = R"svg(<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}"/>)svg";
+std::string GraphSVG::textTag = R"svg(<text x="{x}" y="{y}" fill="red">{text}</text>)svg";
+
+string GraphSVG::subs(string templ, map<string, string> dict)
+{
+    string result = templ;
+    for (auto pr : dict) {
+        string test = "abc def abc def";
+        result = regex_replace(result, regex("{"+pr.first+"}"), pr.second);
+    }
+    return result;
+}
+
+void GraphSVG::addNode(string name, int x, int y)
+{
+
+}
+
+void GraphSVG::addEdge(string from, string to)
+{
+
+}
+
+string GraphSVG::getContent() const
+{
+    
+    return body.str();
+}
 
 DependencyGraph GraphIO::fromTextFile(string filename)
 {
