@@ -17,12 +17,12 @@ int main(int argc, char * argv[])
     
     IndGroupsVisitor visitor;
 
-    graph.traverse(visitor);
+    bool invalid = !graph.traverse(visitor);
 
-    // if (!graph.isValid()) {
-        // cerr << "this is not a directed acyclic graph" << endl;
-        // return -2;
-    // }
+    if (invalid) {
+        cerr << "this is not a directed acyclic graph" << endl;
+        return -2;
+    }
     
     auto indNodes = visitor.getIndGroups();
     for (int level = 0; level < indNodes.size(); ++level) {
@@ -33,7 +33,7 @@ int main(int argc, char * argv[])
         cout << endl;
     }
 
-    //GraphIO::toSVG(graph, "output.svg");
+    GraphIO::toSVG(graph, "output.svg");
 
     return 0;
 }

@@ -48,17 +48,26 @@ void DependencyGraph::step()
     swap(readyNodes, nextNodesList);
 }
 
-void DependencyGraph::traverse(Visitor &visitor)
+bool DependencyGraph::traverse(function<void(const Node::ptr_t&, int, int)> func)
 {
     reset();
     for (int i = 0; i < nodes.size(); ++i) {
         int cnt = 0;
         for (const Node::ptr_t &node : readyNodes) {
-            visitor.accept(node, i, cnt++);
+            func(node, i, cnt++);
         }
         if (numReady == nodes.size()) {
-            break;
+            return true;
         }
         step();
     }
+    return false;
+}
+
+bool DependencyGraph::traverse(Visitor &visitor)
+{
+    return traverse([&visitor](const Node::ptr_t& a, int b, int c)
+        { 
+            visitor.accept(a, b, c);
+        });
 }

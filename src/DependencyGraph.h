@@ -8,12 +8,14 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <functional>
 
 class DependencyGraph {
 public:
     void addNode(std::string nodeName);
     void addEdge(std::string nameFrom, std::string nameTo);
-    void traverse(Visitor &visitor);
+    bool traverse(Visitor &visitor);
+    bool traverse(std::function<void(const Node::ptr_t&, int, int)> func);
 private:
     int numReady = 0;
     std::map<std::string, Node::ptr_t> nodes;
