@@ -6,9 +6,15 @@
 #include <sstream>
 #include <limits>
 
+class SVGDrawError : public std::runtime_error {
+public:
+    SVGDrawError(std::string msg) : std::runtime_error(msg) {}
+};
+
 class GraphSVG {
 public:
-    void addNode(std::string name, int x, int y, int r = 24, std::string color = "#1A4F63");
+    void addNode(std::string name, int x, int y, int r = 24, 
+        std::string color = "#1A4F63");
     void addEdge(std::string from, std::string to);
     std::string getContent(int border = 30) const;
 private:
@@ -25,7 +31,8 @@ private:
     int maxX = -std::numeric_limits<int>::infinity();
     int maxY = -std::numeric_limits<int>::infinity();
 private:
-    static std::string subs(std::string templ, std::map<std::string, std::string> feedDict);
+    static std::string subs(std::string templ, std::map<std::string, 
+        std::string> feedDict);
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include <vector>
 #include "Visitor.h"
 
+// Independent Groups Visitor
 class IndGroupsVisitor : public Visitor {
 public:
     typedef std::vector<std::vector<Node::ptr_t>> IndGroups;

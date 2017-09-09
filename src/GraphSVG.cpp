@@ -6,13 +6,23 @@
 
 using namespace std;
 
-string GraphSVG::bodyTag = R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="{min-x} {min-y} {w} {h}">{content}</svg>)svg";
-string GraphSVG::circleTag = R"svg(<circle cx="{x}" cy="{y}" r="{r}" fill="{color}" opacity="0.9"/>)svg";
-string GraphSVG::lineTag = R"svg(<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="black" stroke-width="1"/>)svg";
-string GraphSVG::textTag = R"svg(<text x="{x}" y="{y}" fill="black" text-anchor="middle" alignment-baseline="central" font-family="Helvetica">{text}</text>)svg";
+string GraphSVG::bodyTag = R"svg(<svg xmlns="http://www.w3.org/2000/svg"
+width="{w}" height="{h}" viewBox="{min-x} {min-y} {w} {h}"
+style="background-color:#F5F5F5;">{content}</svg>)svg";
+
+string GraphSVG::circleTag = R"svg(<circle cx="{x}" cy="{y}" r="{r}"
+fill="{color}" opacity="0.9"/>)svg";
+
+string GraphSVG::lineTag = R"svg(<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}"
+stroke="black" stroke-width="1"/>)svg";
+
+string GraphSVG::textTag = R"svg(<text x="{x}" y="{y}" fill="black" 
+text-anchor="middle" alignment-baseline="central" 
+font-family="Helvetica">{text}</text>)svg";
 
 string GraphSVG::subs(string templ, map<string, string> feedDict)
 {
+    // a mini template engine
     string result = templ;
     for (auto pr : feedDict) {
         result = regex_replace(result, regex("\\{"+pr.first+"\\}"), pr.second);
@@ -45,13 +55,13 @@ void GraphSVG::addEdge(string from, string to)
     Coord p1, p2;
     auto it = coordMap.find(from);
     if (it == coordMap.end()) {
-        // TODO: handle error
+        throw SVGDrawError("node '" + from + "' hasn't been defined");
     }
     p1 = it->second;
 
     it = coordMap.find(to);
     if (it == coordMap.end()) {
-        // TODO: handle error
+        throw SVGDrawError("node '" + to + "' hasn't been defined");
     }
     p2 = it->second;
 

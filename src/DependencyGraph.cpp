@@ -4,6 +4,7 @@ using namespace std;
 
 Node::ptr_t DependencyGraph::getNode(string name)
 {
+    // retrieves or constructs one
     return nodes.emplace(name, make_shared<Node>(name)).first->second;
 }
 
@@ -22,8 +23,11 @@ void DependencyGraph::addEdge(string nameFrom, string nameTo)
 
 void DependencyGraph::reset()
 {
+    // reseting all the nodes and counters, preparing for a graph traversal
+    
     numReady = 0;
     readyNodes.clear();
+
     for (auto &node : nodes) {
         node.second->reset();
         if (node.second->isReady()) {
@@ -35,6 +39,10 @@ void DependencyGraph::reset()
 
 void DependencyGraph::step()
 {
+    // notifying all the nodes subseqent to the currently ready ones
+    // then checking and collecting the nodes became ready because of the
+    // notification
+
     list<Node::ptr_t> nextNodesList;
     for (auto &node : readyNodes) {
         for (auto &out : node->getOutputs()) {
@@ -50,6 +58,12 @@ void DependencyGraph::step()
 
 bool DependencyGraph::traverse(VisitorFunction func)
 {
+    // if this graph is really a DAG, then we need nodes.size() steps at the
+    // the worst case to reach every node
+    // 
+    // so if we can't finish touching all nodes at the end, then there's 
+    // something fishy with this DAG graph
+
     reset();
     for (int i = 0; i < nodes.size(); ++i) {
         int cnt = 0;
@@ -61,7 +75,8 @@ bool DependencyGraph::traverse(VisitorFunction func)
         }
         step();
     }
-    return false;
+    // if we reach this, then this is not a DAG, except it is an empty graph
+    return nodes.empty();
 }
 
 bool DependencyGraph::traverse(Visitor &visitor)

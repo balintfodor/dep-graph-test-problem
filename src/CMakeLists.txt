@@ -4,7 +4,6 @@ set(SRC
     DependencyGraph.cpp
     Visitor.cpp
     IndGroupsVisitor.cpp
-    CompositeVisitor.cpp
     GraphIO.cpp
     GraphSVG.cpp
     )

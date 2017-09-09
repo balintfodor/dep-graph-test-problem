@@ -10,7 +10,6 @@ using namespace std;
 
 DependencyGraph GraphIO::fromTextFile(string filename)
 {
-    // TODO: handle 'file doesnt exist'
     ifstream inFile(filename);
     string line;
     regex lineRegex("([^:[:space:]]+)[[:space:]]*:(.*)");
@@ -18,13 +17,23 @@ DependencyGraph GraphIO::fromTextFile(string filename)
     smatch lineMatch;
     DependencyGraph graph;
 
+    if (!inFile) {
+        throw IOError("file '" + filename + 
+            "' doesn't exists or it's something wrong with it");
+    }
+
     while (getline(inFile, line)) {
         string nodeName;
+        if (line.empty()) {
+            continue;
+        }
         if (regex_match(line, lineMatch, lineRegex)) {
             if (lineMatch.size() > 1) {
                 nodeName = lineMatch[1].str();
             } else {
-                // TODO: parse error
+                // NOTE: this line never should be executed, because our regex 
+                // has 2 catch groups, but I put it here anyway
+                throw ParseError("unknown parser error: " + line);
             }
             if (lineMatch.size() > 2) {
                 string s = lineMatch[2].str();
@@ -34,8 +43,11 @@ DependencyGraph GraphIO::fromTextFile(string filename)
                     graph.addEdge(it->str(), nodeName);
                 }
             } else {
-                // TODO: parse error?
+                // NOTE: same as above
+                throw ParseError("unknown parser error: " + line);
             }
+        } else {
+            throw ParseError("can't parse this line: " + line);
         }
     }
     return graph;
@@ -47,23 +59,27 @@ void GraphIO::toDotFile(const DependencyGraph& graph, string filename)
 
     graph.traverse([&outFile](const Node::ptr_t &node, int level, int which)
     {
-        outFile << "subgraph cluster_" << level << " { \"" << node->getName() << "\";}" << endl;
+        outFile << "subgraph cluster_" << level 
+            << " { \"" << node->getName() << "\";}" << endl;
     });
 
     for (const auto &node : graph) {
         for (const auto &out : node.second->getOutputs()) {
-            outFile << "\"" << node.first << "\" -> \"" << out->getName() << "\";" << endl;
+            outFile << "\"" << node.first << "\" -> \"" 
+                << out->getName() << "\";" << endl;
         }
     }
 
     outFile << "}" << endl;
 }
 
-void GraphIO::toSVG(const DependencyGraph& graph, string filename)
+void GraphIO::toSVG(const DependencyGraph& graph, string filename, 
+    int nodeDistance, int nodeRadius)
 {
     GraphSVG svg;
     vector<int> groupSizes;
-    static const vector<string> colorLut = {"#2E95A3", "#50B8B4", "#C6FFFA", "#E2FFA8", "#D6E055"};
+    static const vector<string> colorLut = 
+        {"#2E95A3", "#50B8B4", "#C6FFFA", "#E2FFA8", "#D6E055"};
     
     graph.traverse([&groupSizes](const Node::ptr_t &node, int level, int which)
     {
@@ -71,19 +87,17 @@ void GraphIO::toSVG(const DependencyGraph& graph, string filename)
         groupSizes[level]++;
     });
 
-    int maxN = *max_element(groupSizes.begin(), groupSizes.end());
+    auto it = max_element(groupSizes.begin(), groupSizes.end());
+    int maxN = it != groupSizes.end() ? *it : 0;
 
-    graph.traverse([&svg, &groupSizes, maxN](const Node::ptr_t &node, int level, int which)
+    graph.traverse([&svg, &groupSizes, maxN, nodeDistance, nodeRadius]
+        (const Node::ptr_t &node, int level, int which)
     {
         int n = groupSizes[level];
-        //(which - n / 2.0) * 50. + maxN / 2.0 * 50;
-        //50.0 * which - (n + maxN) / 25.0;
-        double d = 100.;
-        double x = d * (which - 0.5 * (n - maxN));
-        double y = level * d;
-        int r = 45;
+        double x = nodeDistance * (which - 0.5 * (n - maxN));
+        double y = level * nodeDistance;
         string color = colorLut[level % colorLut.size()];
-        svg.addNode(node->getName(), (int)x, (int)y, r, color);
+        svg.addNode(node->getName(), (int)x, (int)y, nodeRadius, color);
     });
 
     for (const auto &node : graph) {

@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "GraphIO.h"
+#include "GraphSVG.h"
 #include "DependencyGraph.h"
 #include "IndGroupsVisitor.h"
 
@@ -12,16 +13,28 @@ int main(int argc, char * argv[])
         cerr << "usage: " << argv[0] << " <graph text file>" << endl;
         return -1;
     }
-    string filename(argv[1]);
-    DependencyGraph graph = GraphIO::fromTextFile(filename);
-    
+
+    DependencyGraph graph;
     IndGroupsVisitor visitor;
+    string filename(argv[1]);
+
+    try {
+        graph = GraphIO::fromTextFile(filename);
+    }
+    catch (IOError &e) {
+        cerr << "IOError: "<< e.what() << endl;
+        return -2;
+    }
+    catch (ParseError &e) {
+        cerr << "ParseError: "<< e.what() << endl;
+        return -3;
+    }
 
     bool invalid = !graph.traverse(visitor);
 
     if (invalid) {
         cerr << "this is not a directed acyclic graph" << endl;
-        return -2;
+        return -4;
     }
     
     auto indNodes = visitor.getIndGroups();
@@ -34,7 +47,13 @@ int main(int argc, char * argv[])
     }
 
     GraphIO::toDotFile(graph, "output.dot");
-    GraphIO::toSVG(graph, "output.svg");
+
+    try {
+        GraphIO::toSVG(graph, "output.svg");
+    }
+    catch (SVGDrawError &e) {
+        cerr << "SVGDrawError: " << e.what() << endl;
+    }
 
     return 0;
 }

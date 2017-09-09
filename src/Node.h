@@ -5,6 +5,9 @@
 #include <memory>
 #include <list>
 
+// note that we don't need the backward connection to the nodes,
+// so the inputs are just counted instead of referenced
+
 class Node {
 public:
     typedef std::shared_ptr<Node> ptr_t;
