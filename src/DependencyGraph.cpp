@@ -48,7 +48,7 @@ void DependencyGraph::step()
     swap(readyNodes, nextNodesList);
 }
 
-bool DependencyGraph::traverse(function<void(const Node::ptr_t&, int, int)> func)
+bool DependencyGraph::traverse(VisitorFunction func)
 {
     reset();
     for (int i = 0; i < nodes.size(); ++i) {
@@ -66,8 +66,21 @@ bool DependencyGraph::traverse(function<void(const Node::ptr_t&, int, int)> func
 
 bool DependencyGraph::traverse(Visitor &visitor)
 {
+    // TODO: find a neater solution using mem_fn and bind
     return traverse([&visitor](const Node::ptr_t& a, int b, int c)
         { 
             visitor.accept(a, b, c);
         });
+}
+
+bool DependencyGraph::traverse(VisitorFunction func) const
+{
+    DependencyGraph replica(*this);
+    return replica.traverse(func);
+}
+
+bool DependencyGraph::traverse(Visitor &visitor) const
+{
+    DependencyGraph replica(*this);
+    return replica.traverse(visitor);
 }

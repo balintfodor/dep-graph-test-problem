@@ -12,10 +12,19 @@
 
 class DependencyGraph {
 public:
+    typedef std::function<void(const Node::ptr_t&, int, int)> VisitorFunction;
+public:
     void addNode(std::string nodeName);
     void addEdge(std::string nameFrom, std::string nameTo);
     bool traverse(Visitor &visitor);
-    bool traverse(std::function<void(const Node::ptr_t&, int, int)> func);
+    bool traverse(VisitorFunction func);
+    bool traverse(Visitor &visitor) const;
+    bool traverse(VisitorFunction func) const;
+public:
+    std::map<std::string, Node::ptr_t>::iterator begin() { return nodes.begin(); }
+    std::map<std::string, Node::ptr_t>::iterator end() { return nodes.end(); }
+    std::map<std::string, Node::ptr_t>::const_iterator begin() const { return nodes.begin(); }
+    std::map<std::string, Node::ptr_t>::const_iterator end() const { return nodes.end(); }
 private:
     int numReady = 0;
     std::map<std::string, Node::ptr_t> nodes;

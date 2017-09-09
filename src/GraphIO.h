@@ -9,6 +9,7 @@
 class GraphIO {
 public:
     static DependencyGraph fromTextFile(std::string filename);
+    static void toDotFile(const DependencyGraph& graph, std::string filename);
     static void toSVG(const DependencyGraph& graph, std::string filename);
 };
 

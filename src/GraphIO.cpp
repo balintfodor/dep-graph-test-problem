@@ -13,8 +13,8 @@ DependencyGraph GraphIO::fromTextFile(string filename)
     // TODO: handle 'file doesnt exist'
     ifstream inFile(filename);
     string line;
-    regex lineRegex("([_[:alnum:]]+)[[:space:]]*:(.*)");
-    regex tokenRegex("[_[:alnum:]]+");
+    regex lineRegex("([^:[:space:]]+)[[:space:]]*:(.*)");
+    regex tokenRegex("[^:[:space:]]+");
     smatch lineMatch;
     DependencyGraph graph;
 
@@ -40,50 +40,40 @@ DependencyGraph GraphIO::fromTextFile(string filename)
     }
     return graph;
 }
+void GraphIO::toDotFile(const DependencyGraph& graph, string filename)
+{
+    ofstream outFile(filename);
+    outFile << "digraph G {" << endl;
 
-// map<string, pair<int, int>> buildInverseNodeMap(const vector<vector<Node::ptr_t>> &groups)
-// {
-//     map<std::string, std::pair<int, int>> result;
-//     for (int level = 0; level < groups.size(); ++level) {
-        
-//         for (int i = 0; i < groups[level].size(); ++i) {
-//             result[groups[level][i]->getName()] = make_pair(level, i);
-//         }
-//     }
-//     return result;
-// }
+    graph.traverse([&outFile](const Node::ptr_t &node, int level, int which)
+    {
+        outFile << "subgraph cluster_" << level << " { \"" << node->getName() << "\";}" << endl;
+    });
 
-void GraphIO::toSVG(const DependencyGraph& graph, std::string filename)
+    for (const auto &node : graph) {
+        for (const auto &out : node.second->getOutputs()) {
+            outFile << "\"" << node.first << "\" -> \"" << out->getName() << "\";" << endl;
+        }
+    }
+
+    outFile << "}" << endl;
+}
+
+void GraphIO::toSVG(const DependencyGraph& graph, string filename)
 {
     GraphSVG svg;
-    
-    // int n = graph.getMaxGroupSize();
-    // const auto &ind = graph.getIndependentGroups();
-    // int maxLevels = ind.size();
 
-    // auto nodeToPos = buildInverseNodeMap(ind);
+    graph.traverse([&svg](const Node::ptr_t &node, int level, int which)
+    {
+        svg.addNode(node->getName(), which * 160 + 100, level * 160 + 100);
+    });
 
-    // stringstream svg;
-    // svg << "<svg "
-    //     << "xmlns=\"http://www.w3.org/2000/svg\" "
-    //     << "height=\"" << height << "\" "
-    //     << "width=\"" << width << "\" "
-    //     << ">" << endl;
-    // for (const auto &node : graph.getNodes()) {
-    //     auto pos = nodeToPos[node.second->getName()];
-    //     int y = height / (maxLevels + 2.0) * (pos.first + 1.0);
-    //     int x = width / (n + 2.0) * (pos.second + 1.0);
-    //     svg << "<circle "
-    //         << "cx=\"" << x << "\" "
-    //         << "cy=\"" << y << "\" "
-    //         << "r=\"20\" stroke=\"black\" stroke-width=\"1\" fill=\"white\" />" << endl;
-    //     svg << "<text "
-    //         << "x=\"" << x << "\" "
-    //         << "y=\"" << y << "\" "
-    //         << "fill=\"black\">" << node.second->getName() << "</text>" << endl;
-    // }
-    // svg << "</svg>" << endl;
+    for (const auto &node : graph) {
+        for (const auto &out : node.second->getOutputs()) {
+            svg.addEdge(node.first, out->getName());
+        }
+    }
 
-    // ofstream outFile(filename);
-    // outFile << svg.str();
+    ofstream outFile(filename);
+    outFile << svg.getContent();
 }

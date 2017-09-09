@@ -33,6 +33,7 @@ int main(int argc, char * argv[])
         cout << endl;
     }
 
+    GraphIO::toDotFile(graph, "output.dot");
     GraphIO::toSVG(graph, "output.svg");
 
     return 0;
